@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -51,8 +52,6 @@ public class BoardRestController {
 	   }
 	   return new ResponseEntity<>(map,HttpStatus.OK); //onSuccess
    }
-   //--------------------------------------
-   // 글쓰기  ===> PostMapping
    @PostMapping("/board/insert")
    public ResponseEntity<Map> board_insert(@RequestBody ReactBoardEntity vo)
    {
@@ -71,43 +70,102 @@ public class BoardRestController {
    }
    // 수정하기 ===> PutMapping
    @GetMapping("/board/update/{no}")
-   public ResponseEntity<ReactBoardEntity> board_update(@PathVariable("no") int no){
-	   ReactBoardEntity vo=new ReactBoardEntity();
-	   try {
-		   vo=bDao.findByNo(no);
-	   }catch (Exception ex) {
-		   return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
-	   }
-	   
-	   return new ResponseEntity<>(vo,HttpStatus.OK);
+   public ResponseEntity<ReactBoardEntity> board_update(@PathVariable("no") int no)
+   {
+	     ReactBoardEntity vo=new ReactBoardEntity();
+	     try
+	     {
+	    	 vo=bDao.findByNo(no);
+	     }catch(Exception ex)
+	     {
+	    	 return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
+	     }
+	     return new ResponseEntity<>(vo,HttpStatus.OK);
    }
-   
+   /*
+    *                                 @PathVariable("no")
+    *   apiClient.put(`/board/update_ok/${no}`,{
+                name:name,
+                subject:subject,
+                content:content,
+                pwd:pwd
+            })@RequestBody ReactBoardEntity vo
+    */
+   @PutMapping("/board/update_ok/{no}")
+   public ResponseEntity<Map> board_update_ok(@PathVariable("no") int no,
+		   @RequestBody ReactBoardEntity vo)
+   {
+	    /*
+	     *   private int no;
+	
+		    private String name; // insert,update
+		    private String subject;// insert,update
+		    private String content; // insert,update
+		    
+		    @Column(insertable = true,updatable = false)
+		    private String pwd;
+		    @Column(insertable = true , updatable = false)
+		    private String regdate;
+		    
+		    private int hit;//// insert,update
+	     */
+	     Map map=new HashMap();
+	     try
+	     {
+	    	 ReactBoardEntity dbvo=bDao.findByNo(no);
+	    	 if(vo.getPwd().equals(dbvo.getPwd()))// 수정
+	    	 {
+	    		 vo.setNo(no);
+	    		 vo.setHit(dbvo.getHit());
+	    		 bDao.save(vo);// save() = insert/update 
+	    		 // no가 있는 경우(update) / no가 없는 경우(insert) 
+	    		 map.put("msg", "yes");
+	    	 }
+	    	 else
+	    	 {
+	    		 map.put("msg", "no");
+	    	 }
+	     }catch(Exception ex)
+	     {
+	    	 return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
+	    	 // onError
+	     }
+	     return new ResponseEntity<>(map,HttpStatus.OK); // onSuccess
+   }
    // 삭제하기 ===> DeleteMapping
+   // /board/delete/${no}/${pwd}
    @DeleteMapping("/board/delete/{no}/{pwd}")
-   public ResponseEntity<Map> board_delete(@PathVariable("no") int no, @PathVariable("pwd") String pwd){
-	   Map map=new HashMap<>();
-	   try {
+   //-------------------------------------- Mutation
+   public ResponseEntity<Map> board_delete(@PathVariable("no") int no,
+		   @PathVariable("pwd") String pwd)
+   {
+	   Map map=new HashMap();
+	   try
+	   {
 		   ReactBoardEntity vo=bDao.findByNo(no);
-		   if(pwd.equals(vo.getPwd())) {
+		   if(pwd.equals(vo.getPwd()))
+		   {
 			   bDao.delete(vo);
 			   map.put("msg", "yes");
 		   }
-		   else {
-			   map.put("msg","no");
+		   else
+		   {
+			   map.put("msg", "no");
 		   }
-	   }catch (Exception ex) {
+		   
+	   }catch(Exception ex)
+	   {
 		   return new ResponseEntity<>(null,HttpStatus.INTERNAL_SERVER_ERROR);
+		   //onError
 	   }
-	   		return new ResponseEntity<>(map, HttpStatus.OK);
+	   return new ResponseEntity<>(map,HttpStatus.OK);
+	   // onSuccess
    }
-   
-   
-   //-------------------------------------- Mutation
    // 상세보기 ===> GetMapping 
    @GetMapping("/board/detail/{no}")
    public ResponseEntity<ReactBoardEntity> board_detail(@PathVariable("no") int no)
    {
-	   ReactBoardEntity vo=new ReactBoardEntity();
+	   ReactBoardEntity vo=null;
 	   try
 	   {
 		   vo=bDao.findByNo(no);

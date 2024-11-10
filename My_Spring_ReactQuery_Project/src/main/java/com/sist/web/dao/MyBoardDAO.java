@@ -17,4 +17,10 @@ public interface MyBoardDAO extends JpaRepository<MyBoardEntity, Integer>{
     public List<MyBoardEntity> myBoardListData(@Param("start") int start);
     
     public MyBoardEntity findByNo(int no);
+    
+    @Query(value="SELECT * FROM my_board "
+		    +"ORDER BY hit DESC "
+		    +"LIMIT 0,3",nativeQuery = true)
+    public List<MyBoardEntity> myBoardHit3();
+
 }

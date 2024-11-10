@@ -11,9 +11,8 @@ package com.sist.web.entity;
 
 public interface BooksVO {
 	public int getBId();
-
 	public String getBName();
-
+	public String getCatName();
 	public String getBContent();
 	public String getBImage();
 }
